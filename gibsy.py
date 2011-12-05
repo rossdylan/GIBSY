@@ -237,7 +237,7 @@ class server(object):
         self.loadWebPaths()
         evwsgi.set_debug(1)
         evwsgi.run()
-        runCommand("rm %s" % os.join(self.blogPath,"gibsy.pid"))
+        runCommand("rm %s" % os.path.join(self.blogPath,"gibsy.pid"))
     def reload(self):
         """
         Reload everything from the file system
@@ -278,8 +278,6 @@ def start(blogPath,gitPath):
         serv.start()
     except KeyboardInterrupt:
         print "Recieved ctrl-C exiting"
-    finally:
-        exit()
 
 if __name__ == "__main__":
     command = sys.argv[1]
