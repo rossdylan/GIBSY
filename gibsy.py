@@ -7,9 +7,8 @@ import os.path
 import fapws._evwsgi as evwsgi
 from fapws import base
 import time
-import signal
 import sys
-
+from daemon import Daemon
 def runCommand(command):
     """
     Run a single command
@@ -40,10 +39,10 @@ def commitDirectoryStructure(blogPath,gitPath):
     os.chdir(baseDir)
 
 def createGitHookScript(gitDir,blogDir):
-    script = "#!/bin/bash\nkill -9 `cat %s`\npython2 %s start %s %s" % (os.path.join(blogDir,"gibsy.pid"),os.path.join(blogDir,"../","gibsy.py"),blogDir,gitDir)
-    touch(os.path.join(gitDir,"hooks/post-recieve"))
-    runCommand("chmod +x %s" % os.path.join(gitDir,"hooks/post-recieve"))
-    f = open(os.path.join(gitDir,"hooks/post-recieve"),'w')
+    script = "#!/bin/bash\nGIT_DIR='%s'\npython2 %s\ncd %s\ngit pull origin master\ncd ../\npython2 gibsy.py start %s %s&" % (os.path.join(blogDir,"../","gibsy.py"),os.path.join(blogDir,'.git'),os.path.join(blogDir,"gibsy.pid"),blogDir,blogDir,gitDir)
+    touch(os.path.join(gitDir,"hooks/post-receive"))
+    runCommand("chmod +x %s" % os.path.join(gitDir,"hooks/post-receive"))
+    f = open(os.path.join(gitDir,"hooks/post-receive"),'w')
     f.write(script)
     f.close()
 
@@ -135,13 +134,14 @@ class post(object):
         self.body = body
     def wsgiCallback(self,environ, start_response):
         start_response('200 OK', [('ContentType', 'text/html')])
-        return ["<h1> " + self.title + "</h1><br />" + self.__str__()]
+        body = "<br />".join(self.body.split("\n"))
+        return ["<h1> " + self.title + "</h1><br />" + "<p>" + body + "</p>"]
     def __str__(self):
         """
         Return a html formmated string representation of a post
         """
         body = "<br />".join(self.body.split("\n"))
-        return '<h2><a href="/%s">' % self.filename + self.title + "</a></h2><br />"+body
+        return '<h2><a href="/%s">' % self.filename + self.title + "</a></h2><br /><p>"+body+"</p>"
 
 class blog(object):
     """
@@ -162,6 +162,9 @@ class blog(object):
         """
         currentDir = os.getcwd()
         os.chdir(self.blogPath)
+        #print "export GIT_DIR=%s" % os.path.join(os.getcwd(),".git")
+        #runCommand("export GIT_DIR=%s" % os.path.join(os.getcwd(),".git"))
+        
         runCommand("git pull origin master")
         os.chdir(currentDir)
     def sortByDate(self,filesList):
@@ -210,27 +213,22 @@ class blog(object):
         print formattedPosts
         return blogTitle + "<br />"  + "<br />".join(formattedPosts)
 
-class server(object):
+class server(Daemon):
     """
     Controll all the things
     """
     def __init__(self,blogPath,gitPath):
+        blogPath = os.path.join(os.getcwd(),blogPath)
+        gitPath = os.path.join(os.getcwd(),gitPath)
+        Daemon.__init__(self,os.path.join(blogPath,"gibsy.pid"))
         self.blogPath = blogPath
         self.gitPath = gitPath
         self.blogData = blog(blogPath)
     
-    def writePIDToFile(self,fname):
-        touch(fname)
-        f = open(fname,'w')
-        f.write(str(os.getpid()))
-        f.close()
-
-    def start(self):
+    def run(self):
         """
         Start the web server
         """
-        signal.signal(signal.SIGHUP,self.signalHandler)
-        self.writePIDToFile(os.path.join(self.blogPath,"gibsy.pid"))
         self.reload()
         evwsgi.start('0.0.0.0','8080')
         evwsgi.set_base_module(base)
@@ -246,17 +244,6 @@ class server(object):
         self.blogData.loadPosts()
         self.blogData.loadMeta()
     
-    def signalHandler(self,signum, frame):
-        """
-        Our SIGHUP Handler for reloading things 
-        """
-        print "receieved signal %s" % signum
-        if signum == signal.SIGHUP:
-            print "Recieved SIGHUP Reloading blog files"
-            self.reload()
-            self.loadWebPaths()
-            print "Loaded %s blog posts" % len(self.blogData.posts)
-
     def loadWebPaths(self):
         """
         Load all the blog pages
@@ -269,24 +256,20 @@ class server(object):
     def index(self,eviron,start_response):
         start_response('200 OK', [('Content-Type', 'text/html')])
         return [str(self.blogData)]
-    
-def stop():
-    runCommand("kill -9 `cat gibsy.pid`")
-def start(blogPath,gitPath):
-    try:
-        serv = server(blogPath,gitPath)
-        serv.start()
-    except KeyboardInterrupt:
-        print "Recieved ctrl-C exiting"
 
 if __name__ == "__main__":
     command = sys.argv[1]
     if command == "install":
         install()
-    if command == "start": #blog path, git path
-        start(sys.argv[2],sys.argv[3])
     if command == "stop":
-        stop()
+        serv = server(sys.argv[2],sys.argv[3])
+        serv.stop()
+    if command == "start": #blog path, git path
+        serv = server(sys.argv[2],sys.argv[3])
+        serv.start()
+    if command == "derp":
+        serv = server(sys.argv[2],sys.argv[3])
+        serv.run()
         
 
 
