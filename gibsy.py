@@ -279,12 +279,15 @@ if __name__ == "__main__":
     if command == "install":
         install()
     if command == "stop":
+        print "Stopping Server"
         serv = server(sys.argv[2],sys.argv[3])
         serv.stop()
     if command == "start": #blog path, git path
         serv = server(sys.argv[2],sys.argv[3])
+        print "Server starting..."
         serv.start()
-    if command == "derp":
+    if command == "debug":
+        print "Starting Server in Debug mode"
         serv = server(sys.argv[2],sys.argv[3])
         serv.run()
         
