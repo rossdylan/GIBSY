@@ -8,6 +8,7 @@ Dependancies:
     -python2.7
         -FAPWS3
             -libev
+        -PyRSS2Gen
     -git
 
 Commands:

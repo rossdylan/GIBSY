@@ -9,6 +9,9 @@ from fapws import base
 import time
 import sys
 from daemon import Daemon
+import PyRSS2Gen
+import datetime
+
 def runCommand(command):
     """
     Run a single command
@@ -40,6 +43,7 @@ def commitDirectoryStructure(blogPath,gitPath):
 
 def createGitHookScript(gitDir,blogDir):
     script = "#!/bin/bash\nGIT_DIR='%s'\npython2 %s\ncd %s\ngit pull origin master\ncd ../\npython2 gibsy.py start %s %s&" % (os.path.join(blogDir,"../","gibsy.py"),os.path.join(blogDir,'.git'),os.path.join(blogDir,"gibsy.pid"),blogDir,blogDir,gitDir)
+
     touch(os.path.join(gitDir,"hooks/post-receive"))
     runCommand("chmod +x %s" % os.path.join(gitDir,"hooks/post-receive"))
     f = open(os.path.join(gitDir,"hooks/post-receive"),'w')
@@ -61,7 +65,7 @@ def createFileStrucutre(blogname):
     blogDir = os.path.join(os.getcwd(),blogname)
     postsDir = os.path.join(blogDir,"posts")
     gitDir = os.path.join(os.getcwd(),"%s.git" % blogname)
-    
+
     #Create all the things
     print "Create Directory Structure"
     os.mkdir(blogDir)
@@ -70,12 +74,12 @@ def createFileStrucutre(blogname):
     touch(os.path.join(postsDir,"first.post"))
     print "Generating Git Repository"
     generateGitRepo(gitDir)
-    
+
     #Commit/push all the things
     print "Commiting Directory structure to git"
     commitDirectoryStructure(blogDir,gitDir)
-    createGitHookScript(gitDir,blogDir)    
-    
+    createGitHookScript(gitDir,blogDir)
+
 def generateGitRepo(gitPath):
     """
     Create a new git repository
@@ -87,7 +91,7 @@ def generateGitRepo(gitPath):
     os.chdir(prevPath)
 
 def yorn(question):
-    """ 
+    """
     Convience function for yes or no questions
     """
     answer = raw_input("%s (y/N): " % question).lower()
@@ -136,6 +140,12 @@ class post(object):
         start_response('200 OK', [('ContentType', 'text/html')])
         body = "<br />".join(self.body.split("\n"))
         return ["<h1> " + self.title + "</h1><br />" + "<p>" + body + "</p>"]
+    def getRSSItem(self,url):
+        return PyRSS2Gen.RSSItem(
+                title=self.title,
+                link=url+"/"+self.filename,
+                description=' '.join([w for w in self.body.split(" ")[0:len(self.body)//3]]),
+                guid = PyRSS2Gen.Guid(url+"/"+self.filename))
     def __str__(self):
         """
         Return a html formmated string representation of a post
@@ -155,7 +165,13 @@ class blog(object):
         self.postsPath = os.path.join(blogPath,"posts")
         self.meta = {}
         self.posts = []
-    
+    def generateRSSXML(self):
+        rss = PyRSS2Gen.RSS2(title=self.meta['title']+" Feed",
+                link=self.meta['blogurl']+"/rss",
+                description=self.meta['blogdesc'],
+                lastBuildDate = datetime.datetime.utcnow(),
+                items=[p.getRSSItem(self.meta['blogurl']) for p in self.posts])
+        return rss.to_xml()
     def pullFromGit(self):
         """
         Update the blog from the git repo
@@ -251,12 +267,13 @@ class server(Daemon):
         for _post in self.blogData.posts:
             evwsgi.wsgi_cb(("/%s" % _post.filename,_post.wsgiCallback))
             print "Linked to /%s to %s" % (_post.filename,str(_post))
-         
+        evwsgi.wsgi_cb(("/rss",self.rss))
         evwsgi.wsgi_cb(("",self.index))
     def index(self,eviron,start_response):
         start_response('200 OK', [('Content-Type', 'text/html')])
         return [str(self.blogData)]
-
+    def rss(self,eviron,start_response):
+        return [self.blogData.generateRSSXML()]
 if __name__ == "__main__":
     command = sys.argv[1]
     if command == "install":
