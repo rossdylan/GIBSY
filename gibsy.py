@@ -144,7 +144,7 @@ class post(object):
         return PyRSS2Gen.RSSItem(
                 title=self.title,
                 link=url+"/"+self.filename,
-                description=' '.join([w for w in self.body.split(" ")[0:len(self.body)//3]]),
+                description=' '.join([w for w in self.body.split(" ")[0:len(self.body)//4]]),
                 guid = PyRSS2Gen.Guid(url+"/"+self.filename))
     def __str__(self):
         """
@@ -208,7 +208,18 @@ class blog(object):
             postData = getDataFromFile(postFile)
             lines = postData.split("\n")
             title = lines[0]
-            body = "\n".join(lines[1:])
+            lines = lines[1:]
+            modifiedLines = []
+            for line in lines:
+                words = line.split(" ")
+                modifiedWords = []
+                for word in words:
+                    if word.startswith("http://") or word.startswith("https://"):
+                        modifiedWords.append("<a href>"+word+"</a>")
+                    else:
+                        modifiedWords.append(word)
+                modifiedLines.append(' '.join(modifiedWords))
+            body = '\n'.join(modifiedLines)
             lePosts.append(post(title,body,postFile.split("/")[-1].split(".")[0]))
             print "loaded post %s" % postFile.split("/")[-1].split(".")[0]
         self.posts = lePosts
