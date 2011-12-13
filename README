@@ -27,7 +27,9 @@ Commands:
         text and are loaded into memory the website loads really quickly (or at
         least it did in my simple tests, feel free to prove me wrong).
     stop:
-        Exactly as the name entails
+        stop <blogPath> <gitPath>
+        Exactly as the name entails, only now that gibsy goes into daemon mode
+        it hunts down the pid and KILLS IT `
 
 Extending GIBSY:
     The code as of 12/4/11 is kinda messy but it will improve as time goes on.
