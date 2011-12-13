@@ -42,9 +42,8 @@ def commitDirectoryStructure(blogPath,gitPath):
     os.chdir(baseDir)
 
 def createGitHookScript(gitDir,blogDir):
-    dotgit = os.path.join(gitDir,".git")
     parentDir = os.path.join(blogDir,"../")
-    script = "#!/bin/bash\ncd %s\npython2 gibsy.py stop %s %s\nGIT_DIR=%s\ngit pull\npython2 gibsy.py start %s %s" % (parentDir,blogDir,gitDir,dotgit,blogDir,gitDir)
+    script = "#!/bin/bash\ncd %s\npython2 gibsy.py stop %s %s\nGIT_DIR=%s\ngit pull\npython2 gibsy.py start %s %s" % (parentDir,blogDir,gitDir,gitDir,blogDir,gitDir)
     touch(os.path.join(gitDir,"hooks/post-receive"))
     runCommand("chmod +x %s" % os.path.join(gitDir,"hooks/post-receive"))
     f = open(os.path.join(gitDir,"hooks/post-receive"),'w')
