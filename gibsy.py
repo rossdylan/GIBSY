@@ -134,14 +134,14 @@ class post(object):
     """
     Hold all that post-y goodness, class holds single posts
     """
-    def __init__(self,title,body,filename):
+    def __init__(self,title,body,filename,date):
         """
         Initialize a post
         """
         self.filename = filename
         self.title = title
         self.body = body
-        self.date = time.localtime(os.stat(filename)[8])
+        self.date = time.localtime(date)
     def wsgiCallback(self,environ, start_response):
         """
         A method that returns a modified version of the __str__ function
@@ -227,6 +227,7 @@ class blog(object):
             lines = postData.split("\n")
             title = lines[0]
             lines = lines[1:]
+            date = os.stat(postFile)[8]
             modifiedLines = []
             for line in lines:
                 words = line.split(" ")
@@ -238,7 +239,7 @@ class blog(object):
                         modifiedWords.append(word)
                 modifiedLines.append(' '.join(modifiedWords))
             body = '\n'.join(modifiedLines)
-            lePosts.append(post(title,body,postFile.split("/")[-1].split(".")[0]))
+            lePosts.append(post(title,body,postFile.split("/")[-1].split(".")[0],date))
             print "loaded post %s" % postFile.split("/")[-1].split(".")[0]
         self.posts = lePosts
     
