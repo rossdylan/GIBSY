@@ -42,6 +42,11 @@ def commitDirectoryStructure(blogPath,gitPath):
     os.chdir(baseDir)
 
 def createGitHookScript(gitDir,blogDir):
+    """
+    Create the git hook needed to update and 
+    restart the server when a change is pushed
+    to the git repository.
+    """
     parentDir = os.path.join(blogDir,"../")
     script = "#!/bin/bash\ncd %s\npython2 gibsy.py stop %s %s\nGIT_DIR=%s\ngit pull\npython2 gibsy.py start %s %s" % (parentDir,blogDir,gitDir,gitDir,blogDir,gitDir)
     touch(os.path.join(gitDir,"hooks/post-receive"))
@@ -136,16 +141,25 @@ class post(object):
         self.filename = filename
         self.title = title
         self.body = body
+        self.date = time.localtime(os.stat(filename)[8])
     def wsgiCallback(self,environ, start_response):
+        """
+        A method that returns a modified version of the __str__ function
+        It is used so people can directly go to a posts page and view its contents
+        """
         start_response('200 OK', [('ContentType', 'text/html')])
         body = "<br />".join(self.body.split("\n"))
         return ["<h1> " + self.title + "</h1><br />" + "<p>" + body + "</p>"]
     def getRSSItem(self,url):
+        """
+        Return a PyRSS2Gen.RSSItem containing the posts information
+        """
         return PyRSS2Gen.RSSItem(
                 title=self.title,
                 link=url+"/"+self.filename,
                 description=' '.join([w for w in self.body.split(" ")[0:len(self.body)//4]]),
-                guid = PyRSS2Gen.Guid(url+"/"+self.filename))
+                guid = PyRSS2Gen.Guid(url+"/"+self.filename),
+                pubDate= datetime.datetime(*self.date[0:6]))
     def __str__(self):
         """
         Return a html formmated string representation of a post
@@ -166,6 +180,10 @@ class blog(object):
         self.meta = {}
         self.posts = []
     def generateRSSXML(self):
+        """
+        Generate the rss feed for a blog
+        It contains all the posts
+        """
         rss = PyRSS2Gen.RSS2(title=self.meta['title']+" Feed",
                 link=self.meta['blogurl']+"/rss",
                 description=self.meta['blogdesc'],
@@ -281,10 +299,17 @@ class server(Daemon):
         evwsgi.wsgi_cb(("/rss",self.rss))
         evwsgi.wsgi_cb(("",self.index))
     def index(self,eviron,start_response):
+        """
+        Return the html representation of the blogs index page
+        """
         start_response('200 OK', [('Content-Type', 'text/html')])
         return [str(self.blogData)]
     def rss(self,eviron,start_response):
+        """
+        return a valid rss feed for the blog
+        """
         return [self.blogData.generateRSSXML()]
+
 if __name__ == "__main__":
     command = sys.argv[1]
     if command == "install":
