@@ -151,9 +151,11 @@ class post(object):
 		body = "<br />".join(self.body.split("\n"))
 		return ['<link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css">',
 				"<h1>" + self.title + "</h1><br />",
-				"<body><div class='container'>",
+				"<body><div class='row'>",
+                                "<div class='span8 offset2'>",
+                                "<div class='hero-unit'>",
 				"<p>" + body + "</p>",
-				"</div></body>"]
+				"</div></div></div></body>"]
 
 	def getRSSItem(self,url):
 		"""
@@ -171,7 +173,7 @@ class post(object):
 		Return a html formmated string representation of a post
 		"""
 		body = "<br />".join(self.body.split("\n"))
-		return '<h2><a href="/%s">' % self.filename + self.title + "</a></h2><br /><p>"+body+"</p>"
+		return '<h2><a href="/%s">' % self.filename + self.title + "</a></h2><br /><div class='row'><div class='span-two-thirds offset1'><p>"+body+"</p></div></div>"
 
 
 class blog(object):
@@ -264,7 +266,7 @@ class blog(object):
 		blogTitle = '<a href="/"><h1>' + self.meta["title"] + "</h1></a>"
 		formattedPosts = [str(p) for p in self.posts]
 		print formattedPosts
-		return blogTitle + "<br />"  + "<body><div class='container'>" + "<br />".join(formattedPosts) + "</div></body>"
+		return blogTitle + "<br />"  + "<body><div class='row'><div class='span11 offset1'>" + "<br />".join(formattedPosts) + "</div></div></body>"
 
 class server(Daemon):
 	"""
@@ -283,7 +285,7 @@ class server(Daemon):
 		Start the web server
 		"""
 		self.reload()
-		evwsgi.start('0.0.0.0','8080')
+		evwsgi.start('0.0.0.0','31338')
 		evwsgi.set_base_module(base)
 		self.loadWebPaths()
 		evwsgi.set_debug(1)
