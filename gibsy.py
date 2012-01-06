@@ -147,10 +147,10 @@ class post(object):
 		A method that returns a modified version of the __str__ function
 		It is used so people can directly go to a posts page and view its contents
 		"""
-		start_response('200 OK', [('ContentType', 'text/html')])
+		start_response('200 OK', [('Content-Type', 'text/html')])
 		body = "<br />".join(self.body.split("\n"))
 		return ['<link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css">',
-				"<h1> " + self.title + "</h1><br />" + "<p>" + body + "</p>"]
+				"<body><div class='container'><h1>" + self.title + "</h1><br />" + "<p>" + body + "</p></div></body>"]
 	def getRSSItem(self,url):
 		"""
 		Return a PyRSS2Gen.RSSItem containing the posts information
@@ -309,7 +309,9 @@ class server(Daemon):
 		"""
 		start_response('200 OK', [('Content-Type', 'text/html')])
 		return ['<link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css">',
-				str(self.blogData)]
+				"<body><div class='container'>",
+				str(self.blogData),
+				"</div></body>"]
 
 	def rss(self,eviron,start_response):
 		"""
