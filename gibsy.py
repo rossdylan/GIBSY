@@ -103,6 +103,16 @@ def createFileStrucutre(blogname):
 	os.mkdir(blogDir)
 	os.mkdir(postsDir)
 	touch(os.path.join(blogDir, "meta.conf"))
+
+	"""we need an example meta.conf because
+	if the author forgets what to put in it
+	all users are screwed
+	"""
+
+	f = open(os.path.join(blogDir, "meta.conf"))
+	f.write("{'title':'Example Blog','blogurl':'http://blog.example.com','blogdesc':'Super awesome special blog of win'}")
+	f.close()
+
 	touch(os.path.join(postsDir, "first.post"))
 	print "Generating Git Repository"
 	generateGitRepo(gitDir)
@@ -337,6 +347,13 @@ class server(Daemon):
 		"""
 		return [self.blogData.generateRSSXML()]
 
+
+"""
+Time to create a simple command line interface,
+it kinda acts like a bastardized init script
+"""
+
+
 if __name__ == "__main__":
 	command = sys.argv[1]
 
@@ -353,10 +370,14 @@ if __name__ == "__main__":
 		print "Server starting..."
 		serv.start()
 
+	if command == "restart":
+		serv = server(sys.argv[2],sys.argv[3])
+		print "Server Stopping..."
+		serv.stop()
+		print "Server Starting..."
+		serv.start()
+
 	if command == "debug":
 		print "Starting Server in Debug mode"
 		serv = server(sys.argv[2], sys.argv[3])
 		serv.run()
-
-
-
