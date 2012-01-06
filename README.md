@@ -1,18 +1,17 @@
 #GIBSY#
 	GIt Blogging SYstem
+	GIBSY is a extremely lightweight blogging system designed to work with a git
+	repository.
 
-GIBSY is a extremely lightweight blogging system designed to work with a git
-repository.
-
-##Dependancies:##
+##Dependancies:#
 	-python2.7
 		-FAPWS3
 			-libev
 		-PyRSS2Gen
 	-git
 
-##Commands##:
-	###install###:
+##Commands#:
+	### install #:
 		Installs GIBSY to the current directory. This means it generates 2
 		directories based in the current path. The first directory is the blog
 		directory <blogname>/ the second directory is the git repo
@@ -21,27 +20,27 @@ repository.
 		the install process is to generate a git hook that restarts the server
 		to recieve updates whenever the git repo is pushed to.
 
-	###start###:
+	### start #:
 		start <blogPath> <gitPath>
 		Start the web server and begin hosting the blog.
 		the FAPWS3 web server is pretty fast and since all blog posts are just
 		text and are loaded into memory the website loads really quickly (or at
 		least it did in my simple tests, feel free to prove me wrong).
 
-	###stop###:
+	### stop #:
 		stop <blogPath> <gitPath>
 		Exactly as the name entails, only now that gibsy goes into daemon mode
 		it hunts down the pid and KILLS IT.
 
-	###restart###:
+	### restart #:
 		restart <blogPath> <gitPath>
 			Equivalent to gibsy stop && gibsy start
 
-	###debug###:
+	### debug #:
 		debug <blogPath> <gitPath>
 		Runs gibsy in the foreground So problems can be diagnosed.
 
-##Extending GIBSY##:
+##Extending GIBSY#:
 	The code as of 12/4/11 is kinda messy but it will improve as time goes on.
 	Most of initial code was written in a 2 day personal hackathon so it is of
 	course a bit messy and unorganized, anyway...
