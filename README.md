@@ -11,7 +11,7 @@
 	-git
 
 ##Commands:#
-	### install #:
+	__install:__
 		Installs GIBSY to the current directory. This means it generates 2
 		directories based in the current path. The first directory is the blog
 		directory <blogname>/ the second directory is the git repo
@@ -20,23 +20,23 @@
 		the install process is to generate a git hook that restarts the server
 		to recieve updates whenever the git repo is pushed to.
 
-	### start:#
+	__start:__
 		start <blogPath> <gitPath>
 		Start the web server and begin hosting the blog.
 		the FAPWS3 web server is pretty fast and since all blog posts are just
 		text and are loaded into memory the website loads really quickly (or at
 		least it did in my simple tests, feel free to prove me wrong).
 
-	### stop:#
+	__stop:__
 		stop <blogPath> <gitPath>
 		Exactly as the name entails, only now that gibsy goes into daemon mode
 		it hunts down the pid and KILLS IT.
 
-	### restart:#
+	__restart:__
 		restart <blogPath> <gitPath>
 			Equivalent to gibsy stop && gibsy start
 
-	### debug:#
+	__debug:__
 		debug <blogPath> <gitPath>
 		Runs gibsy in the foreground So problems can be diagnosed.
 
@@ -47,22 +47,22 @@
 
 	The code comes in several parts:
 	
-		###Install functions:#
+		__Install functions:__
 			All of these functions are used during the install process to set
 			everything up. These are all located at the begining of gibsy.py,
 			There is a comment in the code splitting the install functions and
 			the other stuff
 
-		###Post and Blog classes:#
+		__Post and Blog classes:__
 			These classes are filled with things to make dealing with the
 			blog's data a bit easier. There are definately some inefficencies
 			in this code...
 
-		###Server class:#
+		__Server class:__
 			the server class puts everything together. It handles reloading the
 			blog, accepting signals, catching exceptions, loading the web
 			paths, etc.
 		
-		###Command section:#
+		__Command section:__
 			Commands and stuff go here, just the basic logic for accepting
 			input and deciding what command function to use.
