@@ -150,7 +150,11 @@ class post(object):
 		start_response('200 OK', [('Content-Type', 'text/html')])
 		body = "<br />".join(self.body.split("\n"))
 		return ['<link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css">',
-				"<body><div class='container'><h1>" + self.title + "</h1><br />" + "<p>" + body + "</p></div></body>"]
+				"<h1>" + self.title + "</h1><br />",
+				"<body><div class='container'>",
+				"<p>" + body + "</p>",
+				"</div></body>"]
+
 	def getRSSItem(self,url):
 		"""
 		Return a PyRSS2Gen.RSSItem containing the posts information
@@ -161,6 +165,7 @@ class post(object):
 				description=' '.join([w for w in self.body.split(" ")[0:len(self.body)//4]]),
 				guid = PyRSS2Gen.Guid(url+"/"+self.filename),
 				pubDate= datetime.datetime(*self.date[0:6]))
+
 	def __str__(self):
 		"""
 		Return a html formmated string representation of a post
@@ -259,7 +264,7 @@ class blog(object):
 		blogTitle = '<a href="/"><h1>' + self.meta["title"] + "</h1></a>"
 		formattedPosts = [str(p) for p in self.posts]
 		print formattedPosts
-		return blogTitle + "<br />"  + "<br />".join(formattedPosts)
+		return blogTitle + "<br />"  + "<body><div class='container'>" + "<br />".join(formattedPosts) + "</div></body>"
 
 class server(Daemon):
 	"""
@@ -309,9 +314,7 @@ class server(Daemon):
 		"""
 		start_response('200 OK', [('Content-Type', 'text/html')])
 		return ['<link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css">',
-				"<body><div class='container'>",
-				str(self.blogData),
-				"</div></body>"]
+				str(self.blogData)]
 
 	def rss(self,eviron,start_response):
 		"""
