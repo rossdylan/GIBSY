@@ -12,11 +12,13 @@ from daemon import Daemon
 import PyRSS2Gen
 import datetime
 
+
 def runCommand(command):
 	"""
 	Run a single command
 	"""
 	return check_output(shlex.split(command))
+
 
 def touch(filename):
 	"""
@@ -24,7 +26,31 @@ def touch(filename):
 	"""
 	runCommand("touch %s" % filename)
 
-def commitDirectoryStructure(blogPath,gitPath):
+
+def yorn(question):
+	"""
+	Convience function for yes or no questions
+	"""
+	answer = raw_input("%s (y/N): " % question).lower()
+	if answer == "y" or answer == "yes":
+		return True
+	if answer == "n" or answer == "no":
+		return False
+	else:
+		return False
+
+
+def getDataFromFile(filename):
+	"""
+	Abstract that reading away
+	"""
+	f = open(filename)
+	data = f.read()
+	f.close()
+	return data
+
+
+def commitDirectoryStructure(blogPath, gitPath):
 	"""
 	Add the Directory Structure to the git repo
 		git remote add origin <currentuser>@localhost:<gitPath>
@@ -41,17 +67,17 @@ def commitDirectoryStructure(blogPath,gitPath):
 	runCommand("git push origin master")
 	os.chdir(baseDir)
 
-def createGitHookScript(gitDir,blogDir):
+def createGitHookScript(gitDir, blogDir):
 	"""
 	Create the git hook needed to update and 
 	restart the server when a change is pushed
 	to the git repository.
 	"""
-	parentDir = os.path.join(blogDir,"../")
-	script = "#!/bin/bash\ncd %s\npython2 gibsy.py stop %s %s\nGIT_DIR=%s\ngit pull\npython2 gibsy.py start %s %s" % (parentDir,blogDir,gitDir,gitDir,blogDir,gitDir)
-	touch(os.path.join(gitDir,"hooks/post-receive"))
-	runCommand("chmod +x %s" % os.path.join(gitDir,"hooks/post-receive"))
-	f = open(os.path.join(gitDir,"hooks/post-receive"),'w')
+	parentDir = os.path.join(blogDir, "../")
+	script = "#!/bin/bash\ncd %s\npython2 gibsy.py stop %s %s\nGIT_DIR=%s\ngit pull\npython2 gibsy.py start %s %s" % (parentDir, blogDir, gitDir, gitDir, blogDir, gitDir)
+	touch(os.path.join(gitDir, "hooks/post-receive"))
+	runCommand("chmod +x %s" % os.path.join(gitDir, "hooks/post-receive"))
+	f = open(os.path.join(gitDir, "hooks/post-receive"), 'w')
 	f.write(script)
 	f.close()
 
@@ -67,23 +93,23 @@ def createFileStrucutre(blogname):
 			-All dem posts go here.txt
 	"""
 	#Generate paths for blog, git, and posts
-	blogDir = os.path.join(os.getcwd(),blogname)
-	postsDir = os.path.join(blogDir,"posts")
-	gitDir = os.path.join(os.getcwd(),"%s.git" % blogname)
+	blogDir = os.path.join(os.getcwd(), blogname)
+	postsDir = os.path.join(blogDir, "posts")
+	gitDir = os.path.join(os.getcwd(), "%s.git" % blogname)
 
 	#Create all the things
 	print "Create Directory Structure"
 	os.mkdir(blogDir)
 	os.mkdir(postsDir)
-	touch(os.path.join(blogDir,"meta.conf"))
-	touch(os.path.join(postsDir,"first.post"))
+	touch(os.path.join(blogDir, "meta.conf"))
+	touch(os.path.join(postsDir, "first.post"))
 	print "Generating Git Repository"
 	generateGitRepo(gitDir)
 
 	#Commit/push all the things
 	print "Commiting Directory structure to git"
-	commitDirectoryStructure(blogDir,gitDir)
-	createGitHookScript(gitDir,blogDir)
+	commitDirectoryStructure(blogDir, gitDir)
+	createGitHookScript(gitDir, blogDir)
 
 def generateGitRepo(gitPath):
 	"""
@@ -95,17 +121,6 @@ def generateGitRepo(gitPath):
 	runCommand("git init --bare")
 	os.chdir(prevPath)
 
-def yorn(question):
-	"""
-	Convience function for yes or no questions
-	"""
-	answer = raw_input("%s (y/N): " % question).lower()
-	if answer == "y" or answer == "yes":
-		return True
-	if answer == "n" or answer == "no":
-		return False
-	else:
-		return False
 
 def install():
 	"""
@@ -117,24 +132,19 @@ def install():
 	else:
 		print "Good Bye"
 		exit()
+
+
 """
 End of all the install shits
 Lets Do blog shits now!
 """
-def getDataFromFile(filename):
-	"""
-	Abstract that reading away
-	"""
-	f = open(filename)
-	data = f.read()
-	f.close()
-	return data
+
 
 class post(object):
 	"""
 	Hold all that post-y goodness, class holds single posts
 	"""
-	def __init__(self,title,body,filename,date):
+	def __init__(self, title, body, filename, date):
 		"""
 		Initialize a post
 		"""
@@ -142,7 +152,8 @@ class post(object):
 		self.title = title
 		self.body = body
 		self.date = time.localtime(date)
-	def wsgiCallback(self,environ, start_response):
+
+	def wsgiCallback(self, environ, start_response):
 		"""
 		A method that returns a modified version of the __str__ function
 		It is used so people can directly go to a posts page and view its contents
@@ -152,20 +163,20 @@ class post(object):
 		return ['<link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css">',
 				"<h1>" + self.title + "</h1><br />",
 				"<body><div class='row'>",
-                                "<div class='span8 offset2'>",
-                                "<div class='hero-unit'>",
+				"<div class='span8 offset2'>",
+				"<div class='hero-unit'>",
 				"<p>" + body + "</p>",
 				"</div></div></div></body>"]
 
-	def getRSSItem(self,url):
+	def getRSSItem(self, url):
 		"""
 		Return a PyRSS2Gen.RSSItem containing the posts information
 		"""
 		return PyRSS2Gen.RSSItem(
 				title=self.title,
-				link=url+"/"+self.filename,
-				description=' '.join([w for w in self.body.split(" ")[0:len(self.body)//4]]),
-				guid = PyRSS2Gen.Guid(url+"/"+self.filename),
+				link=url + "/" + self.filename,
+				description=' '.join([w for w in self.body.split(" ")[0:int(len(self.body)/4)]]),
+				guid = PyRSS2Gen.Guid(url + "/" + self.filename),
 				pubDate= datetime.datetime(*self.date[0:6]))
 
 	def __str__(self):
@@ -173,7 +184,7 @@ class post(object):
 		Return a html formmated string representation of a post
 		"""
 		body = "<br />".join(self.body.split("\n"))
-		return '<h2><a href="/%s">' % self.filename + self.title + "</a></h2><br /><div class='row'><div class='span-two-thirds offset1'><p>"+body+"</p></div></div>"
+		return '<h2><a href="/%s">' % self.filename + self.title + "</a></h2><br /><div class='row'><div class='span-two-thirds offset1'><p>" + body + "</p></div></div>"
 
 
 class blog(object):
@@ -194,8 +205,8 @@ class blog(object):
 		Generate the rss feed for a blog
 		It contains all the posts
 		"""
-		rss = PyRSS2Gen.RSS2(title=self.meta['title']+" Feed",
-				link=self.meta['blogurl']+"/rss",
+		rss = PyRSS2Gen.RSS2(title=self.meta['title'] + " Feed",
+				link=self.meta['blogurl'] + "/rss",
 				description=self.meta['blogdesc'],
 				lastBuildDate = datetime.datetime.utcnow(),
 				items=[p.getRSSItem(self.meta['blogurl']) for p in self.posts])
@@ -210,7 +221,7 @@ class blog(object):
 		runCommand("git pull origin master")
 		os.chdir(currentDir)
 
-	def sortByDate(self,filesList):
+	def sortByDate(self, filesList):
 		"""
 		Sort files in descending order of most recently modified
 		"""
@@ -218,7 +229,7 @@ class blog(object):
 		for file in filesList:
 			stats = os.stat(file)
 			lastModDate = time.localtime(stats[8])
-			dateList.append((lastModDate,file))
+			dateList.append((lastModDate, file))
 		dateList.sort()
 		dateList.reverse()
 		return [f[1] for f in dateList]
@@ -228,7 +239,7 @@ class blog(object):
 		Load all the posts in the posts directory
 		"""
 		dirList = os.listdir(self.postsPath)
-		postFileList = [os.path.join(self.postsPath,f) for f in dirList if f.endswith(".post")]
+		postFileList = [os.path.join(self.postsPath, f) for f in dirList if f.endswith(".post")]
 		postFileList = self.sortByDate(postFileList)
 		lePosts = []
 		for postFile in postFileList:
@@ -243,12 +254,12 @@ class blog(object):
 				modifiedWords = []
 				for word in words:
 					if word.startswith("http://") or word.startswith("https://"):
-						modifiedWords.append("<a href>"+word+"</a>")
+						modifiedWords.append("<a href>" + word + "</a>")
 					else:
 						modifiedWords.append(word)
 				modifiedLines.append(' '.join(modifiedWords))
 			body = '\n'.join(modifiedLines)
-			lePosts.append(post(title,body,postFile.split("/")[-1].split(".")[0],date))
+			lePosts.append(post(title, body, postFile.split("/")[-1].split(".")[0], date))
 			print "loaded post %s" % postFile.split("/")[-1].split(".")[0]
 		self.posts = lePosts
 
@@ -256,7 +267,7 @@ class blog(object):
 		"""
 		Load all our meta data
 		"""
-		self.meta = eval(getDataFromFile(os.path.join(self.blogPath,"meta.conf")))
+		self.meta = eval(getDataFromFile(os.path.join(self.blogPath, "meta.conf")))
 
 	def __str__(self):
 		"""
@@ -268,14 +279,15 @@ class blog(object):
 		print formattedPosts
 		return blogTitle + "<br />"  + "<body><div class='row'><div class='span11 offset1'>" + "<br />".join(formattedPosts) + "</div></div></body>"
 
+
 class server(Daemon):
 	"""
 	Controll all the things
 	"""
 	def __init__(self,blogPath,gitPath):
-		blogPath = os.path.join(os.getcwd(),blogPath)
-		gitPath = os.path.join(os.getcwd(),gitPath)
-		Daemon.__init__(self,os.path.join(blogPath,"gibsy.pid"))
+		blogPath = os.path.join(os.getcwd(), blogPath)
+		gitPath = os.path.join(os.getcwd(), gitPath)
+		Daemon.__init__(self,os.path.join(blogPath, "gibsy.pid"))
 		self.blogPath = blogPath
 		self.gitPath = gitPath
 		self.blogData = blog(blogPath)
@@ -285,12 +297,12 @@ class server(Daemon):
 		Start the web server
 		"""
 		self.reload()
-		evwsgi.start('0.0.0.0','31338')
+		evwsgi.start('0.0.0.0', '31338')
 		evwsgi.set_base_module(base)
 		self.loadWebPaths()
 		evwsgi.set_debug(1)
 		evwsgi.run()
-		runCommand("rm %s" % os.path.join(self.blogPath,"gibsy.pid"))
+		runCommand("rm %s" % os.path.join(self.blogPath, "gibsy.pid"))
 
 	def reload(self):
 		"""
@@ -305,10 +317,10 @@ class server(Daemon):
 		Load all the blog pages
 		"""
 		for _post in self.blogData.posts:
-			evwsgi.wsgi_cb(("/%s" % _post.filename,_post.wsgiCallback))
-			print "Linked to /%s to %s" % (_post.filename,str(_post))
-		evwsgi.wsgi_cb(("/rss",self.rss))
-		evwsgi.wsgi_cb(("",self.index))
+			evwsgi.wsgi_cb(("/%s" % _post.filename, _post.wsgiCallback))
+			print "Linked to /%s to %s" % (_post.filename, str(_post))
+		evwsgi.wsgi_cb(("/rss", self.rss))
+		evwsgi.wsgi_cb(("", self.index))
 
 	def index(self,eviron,start_response):
 		"""
@@ -332,17 +344,17 @@ if __name__ == "__main__":
 
 	if command == "stop":
 		print "Stopping Server"
-		serv = server(sys.argv[2],sys.argv[3])
+		serv = server(sys.argv[2], sys.argv[3])
 		serv.stop()
 
 	if command == "start": #blog path, git path
-		serv = server(sys.argv[2],sys.argv[3])
+		serv = server(sys.argv[2], sys.argv[3])
 		print "Server starting..."
 		serv.start()
 
 	if command == "debug":
 		print "Starting Server in Debug mode"
-		serv = server(sys.argv[2],sys.argv[3])
+		serv = server(sys.argv[2], sys.argv[3])
 		serv.run()
 
 
