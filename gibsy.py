@@ -11,6 +11,7 @@ import sys
 from daemon import Daemon
 import PyRSS2Gen
 import datetime
+import json
 
 
 def runCommand(command):
@@ -267,7 +268,7 @@ class blog(object):
 		"""
 		Load all our meta data
 		"""
-		self.meta = eval(getDataFromFile(os.path.join(self.blogPath, "meta.conf")))
+		self.meta = json.dumps(getDataFromFile(os.path.join(self.blogPath, "meta.conf")))
 
 	def __str__(self):
 		"""
