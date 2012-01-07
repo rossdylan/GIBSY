@@ -75,7 +75,7 @@ def createGitHookScript(gitDir, blogDir):
 	to the git repository.
 	"""
 	parentDir = os.path.join(blogDir, "../")
-	script = "#!/bin/bash\ncd %s\npython2 gibsy.py stop %s %s\nGIT_DIR=%s\ngit pull\npython2 gibsy.py start %s %s" % (parentDir, blogDir, gitDir, gitDir, blogDir, gitDir)
+	script = "#!/bin/bash\ncd %s\npython2.7 gibsy.py stop %s %s\nGIT_DIR=%s\ngit pull\npython2.7 gibsy.py start %s %s" % (parentDir, blogDir, gitDir, gitDir, blogDir, gitDir)
 	touch(os.path.join(gitDir, "hooks/post-receive"))
 	runCommand("chmod +x %s" % os.path.join(gitDir, "hooks/post-receive"))
 	f = open(os.path.join(gitDir, "hooks/post-receive"), 'w')
@@ -110,7 +110,7 @@ def createFileStrucutre(blogname):
 	"""
 
 	f = open(os.path.join(blogDir, "meta.conf"))
-	f.write("{'title':'Example Blog','blogurl':'http://blog.example.com','blogdesc':'Super awesome special blog of win'}")
+	f.write('{"title":"Example Blog","blogurl":"http://blog.example.com","blogdesc":"Super awesome special blog of win"}')
 	f.close()
 
 	touch(os.path.join(postsDir, "first.post"))
@@ -278,7 +278,8 @@ class blog(object):
 		"""
 		Load all our meta data
 		"""
-		self.meta = json.dumps(getDataFromFile(os.path.join(self.blogPath, "meta.conf")))
+		self.meta = json.loads(getDataFromFile(os.path.join(self.blogPath, "meta.conf")))
+		print self.meta
 
 	def __str__(self):
 		"""
