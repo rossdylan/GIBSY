@@ -109,7 +109,7 @@ def createFileStrucutre(blogname):
 	all users are screwed
 	"""
 
-	f = open(os.path.join(blogDir, "meta.conf"))
+	f = open(os.path.join(blogDir, "meta.conf"),'w')
 	f.write('{"title":"Example Blog","blogurl":"http://blog.example.com","blogdesc":"Super awesome special blog of win"}')
 	f.close()
 
