@@ -265,7 +265,8 @@ class blog(object):
 				modifiedWords = []
 				for word in words:
 					if word.startswith("http://") or word.startswith("https://"):
-						modifiedWords.append("<a href>" + word + "</a>")
+						print "Found link: %s" % word
+						modifiedWords.append("<a href=" + word + ">" + word + "</a>")
 					else:
 						modifiedWords.append(word)
 				modifiedLines.append(' '.join(modifiedWords))
