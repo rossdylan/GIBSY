@@ -1,9 +1,10 @@
 #!/usr/bin/python2.7
 
 import fapws._evwsgi as evwsgi
-import markdown
+from docutils import core
 import shlex
 import os
+import sys
 import time
 import json
 from fapws import base
@@ -73,6 +74,13 @@ def sort_by_date(file_list):
     date_list.reverse()
     return [f[1] for f in date_list]
 
+
+def reST_to_html(string):
+    parts = core.publish_parts(
+                                source=string,
+                                writer_name='html',)
+    return parts['body_pre_docinfo']+parts['fragment']
+
 """Blog Data classes"""
 
 
@@ -84,12 +92,11 @@ class BlogPost(object):
         with open(self.post_path, 'r') as f:
             for line in f:
                 if first_line:
-                    self.title = markdown.markdown(line)
+                    self.title = reST_to_html(line)
                     first_line = False
                 else:
                     self.body.append(line)
-        self.body = markdown.markdown('\n'.join(self.body),
-                                    output_format='html5')
+        self.body = reST_to_html('\n'.join(self.body))
 
     def getWebPath(self):
         """
@@ -140,6 +147,7 @@ class Blog(object):
     @templated(TEMPLATE_HEAD, TEMPLATE_TAIL)
     def getIndexPage(self):
         index = []
+        index.append("<title>" + self.blog_title + "</title>")
         index.append('<a href="/"><h1>' + self.blog_title + "</h1></a>")
         index.append("<br />")
         index.append("<body><div class='row'><div class='span11' offset1'>")
@@ -171,5 +179,10 @@ class Server(Daemon):
         evwsgi.run()
 
 if __name__ == "__main__":
-    s = Server("/home/posiden/Projects/gibsy_test/meta.conf")
-    s.run()
+    if len(sys.argv) == 3:
+        command = sys.argv[1]
+        config_file = sys.argv[2]
+        s = Server(config_file)
+        s.run()
+    else:
+        print "gibsy takes exactly 2 arguments"
