@@ -7,6 +7,8 @@ import os
 import sys
 import time
 import json
+import PyRSS2Gen as rss2
+import datetime
 from fapws import base
 from daemon import Daemon
 from subprocess import check_output
@@ -89,6 +91,8 @@ class BlogPost(object):
         self.post_path = path
         first_line = True
         self.body = []
+        stats = os.stat(path)
+        self.date = time.localtime(stats[8])
         with open(self.post_path, 'r') as f:
             for line in f:
                 if first_line:
@@ -124,6 +128,14 @@ class BlogPost(object):
                 self.getPostBody()
                 ])
 
+    def getRSSItem(self,url):
+        return rss2.RSSItem(
+                title=self.title,
+                link=url + "/" + self.getWebPath(),
+                description=' '.join([w for w in self.body.split(" ")[0:len(self.body) // 4]]),
+                guid=rss2.Guid(url + "/" + self.getWebPath()),
+                pubDate=datetime.datetime(*self.date[0:6]))
+
     @wsgify("text/html")
     @templated(TEMPLATE_HEAD, TEMPLATE_TAIL)
     def getPostPage(self):
@@ -131,10 +143,12 @@ class BlogPost(object):
 
 
 class Blog(object):
-    def __init__(self, git_repo, git_clone, blog_title):
-        self.git_repo = git_repo
-        self.git_clone = git_clone
-        self.blog_title = blog_title
+    def __init__(self, config):
+        self.config = config
+        self.git_repo = self.config['git_repo']
+        self.git_clone = self.config['git_clone']
+        self.blog_title = self.config['blog_title']
+
         self.posts = []
         self.posts_path = os.path.join(self.git_clone, "posts")
         post_listing = os.listdir(self.posts_path)
@@ -155,6 +169,16 @@ class Blog(object):
         index.append("</div></div></body>")
         return str("\n".join(index))
 
+    @wsgify("application/xml")
+    def getRSSFeed(self):
+        rss = rss2.RSS2(
+                title=self.blog_title,
+                link=self.config['blog_url'] + "/rss",
+                description=self.config['blog_desc'],
+                lastBuildDate=datetime.datetime.utcnow(),
+                items=[p.getRSSItem(self.config['blog_url']) for p in self.posts])
+        return rss.to_xml()
+
 
 class Server(Daemon):
     def __init__(self, config_path):
@@ -165,14 +189,15 @@ class Server(Daemon):
     def loadWebPath(self):
         for post in self.blog.posts:
             evwsgi.wsgi_cb(("/%s" % post.getWebPath(), post.getPostPage))
+        evwsgi.wsgi_cb(("/rss", self.blog.getRSSFeed))
         evwsgi.wsgi_cb(("", self.blog.getIndexPage))
 
     def run(self):
-        #current_dir = os.getcwd()
-        #os.chdir(self.config['git_clone'])
-        #run_command("git pull origin master")
-        #os.chdir(current_dir)
-        self.blog = Blog(self.config['git_repo'], self.config['git_clone'], self.config['title'])
+        current_dir = os.getcwd()
+        os.chdir(self.config['git_clone'])
+        run_command("git pull origin master")
+        os.chdir(current_dir)
+        self.blog = Blog(self.config)
         evwsgi.start(self.config['host'], self.config['port'])
         evwsgi.set_base_module(base)
         self.loadWebPath()
@@ -183,6 +208,13 @@ if __name__ == "__main__":
         command = sys.argv[1]
         config_file = sys.argv[2]
         s = Server(config_file)
-        s.run()
+        if command == "start":
+            s.start()
+        elif command == "stop":
+            s.stop()
+        elif command == "restart":
+            s.restart()
+        elif command == "debug":
+            s.run()
     else:
         print "gibsy takes exactly 2 arguments"
