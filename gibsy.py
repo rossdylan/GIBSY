@@ -96,16 +96,16 @@ def reST_to_html(string):
 
 
 def yorn(question):
-	"""
-	Convience function for yes or no questions
-	"""
-	answer = raw_input("%s (y/N): " % question).lower()
-	if answer == "y" or answer == "yes":
-		return True
-	if answer == "n" or answer == "no":
-		return False
-	else:
-		return False
+    """
+    Convience function for yes or no questions
+    """
+    answer = raw_input("%s (y/N): " % question).lower()
+    if answer == "y" or answer == "yes":
+        return True
+    if answer == "n" or answer == "no":
+        return False
+    else:
+        return False
 
 
 """Installer functions"""
