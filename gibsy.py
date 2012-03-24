@@ -11,7 +11,12 @@ import PyRSS2Gen as rss2
 import datetime
 from fapws import base
 from daemon import Daemon
-from subprocess import check_output
+try:
+    from subprocess import check_output
+except:
+    import subprocess
+    def check_output(cmd):
+        return subprocess.Popen(cmd,stdout=subprocess.PIPE).communicate()[0]
 
 DEFAULT_CONFIG = {
         "blog_title": "New Gibsy Blog",
