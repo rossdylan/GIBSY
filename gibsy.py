@@ -9,6 +9,7 @@ import time
 import json
 import PyRSS2Gen as rss2
 import datetime
+import re
 from fapws import base
 from daemon import Daemon
 try:
@@ -79,6 +80,7 @@ def run_command(command):
     try:
         return check_output(shlex.split(command))
     except:
+        print "Command %s failed" % command
         return None
 
 
@@ -115,7 +117,7 @@ def yorn(question):
 
 """Installer functions"""
 def generate_git_hook(config_path):
-    return "#!/bin/bash\ngibsy restart %s" % config_path
+    return "#!/bin/bash\ngibsy.py restart %s" % config_path
 
 def install():
     cwd = os.getcwd()
@@ -123,7 +125,7 @@ def install():
     if install_here:
         install_path = cwd
     else:
-        install_path = raw_input("ENter an install path; ")
+        install_path = raw_input("Enter an install path; ")
     blog_name = raw_input("Enter a blog name: ")
     os.chdir(install_path)
     print "Creating Git Repository"
@@ -202,7 +204,7 @@ class BlogPost(object):
 
     def getRSSItem(self,url):
         return rss2.RSSItem(
-                title=self.title,
+                title=re.sub('<[^<]+?>', '', self.title),
                 link=url + "/" + self.getWebPath(),
                 description=' '.join([w for w in self.body.split(" ")[0:len(self.body) // 4]]),
                 guid=rss2.Guid(url + "/" + self.getWebPath()),
@@ -263,11 +265,14 @@ class Server(Daemon):
         evwsgi.wsgi_cb(("/rss", self.blog.getRSSFeed))
         evwsgi.wsgi_cb(("", self.blog.getIndexPage))
 
-    def run(self):
+    def update(self):
         current_dir = os.getcwd()
         os.chdir(self.config['git_clone'])
         run_command("git pull origin master")
         os.chdir(current_dir)
+
+    def run(self):
+        self.update()
         self.blog = Blog(self.config)
         evwsgi.start(self.config['host'], self.config['port'])
         evwsgi.set_base_module(base)
@@ -287,8 +292,10 @@ if __name__ == "__main__":
             s.restart()
         elif command == "debug":
             s.run()
+        elif command == "update":
+            s.update()
     elif len(sys.argv) == 2:
         if sys.argv[1] == "install":
             install()
     else:
-        print "gibsy: [install start stop restart debug] [config_file]"
+        print "gibsy: [update install start stop restart debug] [config_file]"
