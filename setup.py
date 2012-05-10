@@ -12,6 +12,6 @@ setup(
         scripts = ['gibsy.py',],
         license = 'MIT',
         dependency_links = ['https://github.com/rossdylan/python-daemon/zipball/master#egg=python-daemon',],
-        install_requires = ['fapws3', 'PyRSS2Gen', 'docutils'])
+        install_requires = ['fapws3', 'PyRSS2Gen', 'pygments', 'docutils>=0.9'])
 
 
