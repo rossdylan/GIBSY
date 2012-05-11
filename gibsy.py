@@ -35,11 +35,11 @@ function decorators section
 """
 TEMPLATE_HEAD = ""
 TEMPLATE_HEAD += '<html>'
-TEMPLATE_HEAD += '<link href="css" rel="stylesheet" type="text/css">'
 TEMPLATE_HEAD += '<link rel="stylesheet" '
 TEMPLATE_HEAD += 'href='
 TEMPLATE_HEAD += '"http://twitter.github.com'
 TEMPLATE_HEAD += '/bootstrap/1.4.0/bootstrap.min.css">'
+TEMPLATE_HEAD += '<link href="css" rel="stylesheet" type="text/css">'
 TEMPLATE_TAIL = "</html>"
 
 POST_TEMPLATE_HEAD = "<div class='row'><div class='span-two-thirds offset1'>"
