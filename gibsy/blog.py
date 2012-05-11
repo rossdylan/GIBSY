@@ -63,13 +63,13 @@ class BlogPost(object):
 
         return self.body
 
-    def getFormmatedPost(self):
+    def getFormattedPost(self):
         """
         Return the fully formatted post in its entirety (including title)
         """
 
         return ''.join([
-            '<a href="{0}">'.format(self.getWebPath),
+            '<a href="{0}">'.format(self.getWebPath()),
             self.getPostTitle(),
             "</a><br />",
             self.getPostBody()
@@ -86,7 +86,7 @@ class BlogPost(object):
     @util.wsgify("text/html")
     @util.templated(TEMPLATE_HEAD, TEMPLATE_TAIL)
     def getPostPage(self):
-        return str(self.getFormmatedPost())
+        return str(self.getFormattedPost())
 
 
 class Blog(object):
@@ -102,8 +102,8 @@ class Blog(object):
         self.pygments = util.run_command("pygmentize -S colorful -f html")
         self.pygments += "\n pre {line-height: 10px: }"
 
-        post_listing = os.listdir(self.post_path)
-        post_files = [os.path.join(self.post_path, f) for f in post_listing]
+        post_listing = os.listdir(self.posts_path)
+        post_files = [os.path.join(self.posts_path, f) for f in post_listing]
         post_files = util.sort_by_date(post_files)
 
         for post_file in post_files:
