@@ -35,6 +35,7 @@ function decorators section
 """
 TEMPLATE_HEAD = ""
 TEMPLATE_HEAD += '<html>'
+TEMPLATE_HEAD += '<link href="css" rel="stylesheet" type="text/css">'
 TEMPLATE_HEAD += '<link rel="stylesheet" '
 TEMPLATE_HEAD += 'href='
 TEMPLATE_HEAD += '"http://twitter.github.com'
@@ -225,11 +226,17 @@ class Blog(object):
 
         self.posts = []
         self.posts_path = os.path.join(self.git_clone, "posts")
+
+        self.pygments = run_command("pygmentize -S colorful -f html")
         post_listing = os.listdir(self.posts_path)
         post_files = [os.path.join(self.posts_path, f) for f in post_listing]
         post_files = sort_by_date(post_files)
         for post_file in post_files:
             self.posts.append(BlogPost(post_file))
+
+    @wsgify("text/css")
+    def getPygments(self):
+        return self.pygments
 
     @wsgify("text/html")
     @templated(TEMPLATE_HEAD, TEMPLATE_TAIL)
@@ -255,14 +262,17 @@ class Blog(object):
 
 
 class Server(Daemon):
+
     def __init__(self, config_path):
         self.config_path = config_path
         self.config = json.loads(open(self.config_path).read())
-        Daemon.__init__(self,self.config['pid_path'])
+        Daemon.__init__(self, self.config['pid_path'])
+
     def loadWebPath(self):
         for post in self.blog.posts:
             evwsgi.wsgi_cb(("/%s" % post.getWebPath(), post.getPostPage))
         evwsgi.wsgi_cb(("/rss", self.blog.getRSSFeed))
+        evwsgi.wsgi_cb(("/css", self.blog.getPygments))
         evwsgi.wsgi_cb(("", self.blog.getIndexPage))
 
     def update(self):
