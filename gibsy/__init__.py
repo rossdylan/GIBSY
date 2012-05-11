@@ -1,5 +1,3 @@
-#!/usr/bin/python2.7
-
 import fapws._evwsgi as evwsgi
 import os
 import json
