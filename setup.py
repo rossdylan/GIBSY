@@ -1,7 +1,7 @@
 try:
     from setuptools import setup, find_packages
 except ImportError:
-    from ez_setup import use_setuptools()
+    from ez_setup import use_setuptools
     use_setuptools()
     from setuptools import setup, find_package
 
@@ -33,7 +33,7 @@ setup(
         'docutils>=0.9'
         ],
     packages=['gibsy'],
-    include_package_data=True
+    include_package_data=True,
     zip_safe=False,
     entry_points="""
     [console_scripts]
