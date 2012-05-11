@@ -218,6 +218,7 @@ class BlogPost(object):
 
 
 class Blog(object):
+
     def __init__(self, config):
         self.config = config
         self.git_repo = self.config['git_repo']
@@ -228,6 +229,7 @@ class Blog(object):
         self.posts_path = os.path.join(self.git_clone, "posts")
 
         self.pygments = run_command("pygmentize -S colorful -f html")
+        self.pygments += "\n pre { line-height: 10px: }"
         post_listing = os.listdir(self.posts_path)
         post_files = [os.path.join(self.posts_path, f) for f in post_listing]
         post_files = sort_by_date(post_files)
