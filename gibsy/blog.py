@@ -36,7 +36,7 @@ class BlogPost(object):
                     first_line = False
                 else:
                     self.body.append(line)
-        self.body = util.reST_to_html('/n'.join(self.body))
+        self.body = util.reST_to_html('\n'.join(self.body))
 
     def getWebPath(self):
         """
