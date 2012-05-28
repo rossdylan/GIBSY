@@ -67,6 +67,20 @@ def reST_to_html(string):
                                 writer_name='html',)
     return parts['body_pre_docinfo']+parts['fragment']
 
+def get_git_info(clone_path):
+    """
+    Function to retrieve basic information about a cloned repo
+    """
+    with file(os.path.join(clone_path, '.git/logs/HEAD')) as f:
+        latest_commit = list(f)[-1].split(' ')
+        commit_hash = latest_commit[1][0:6]
+        commit_time = latest_commit[5] + latest_commit[6].split("\t")[0]
+        commit_message = " ".join(latest_commit[7:])
+    return {
+            "hash": commit_hash,
+            "time": commit_time,
+            "message": commit_message
+           }
 
 def yorn(question):
     """
