@@ -118,9 +118,9 @@ class Blog(object):
     def getIndexPage(self):
         index = [
             "<title>" + self.blog_title + "</title>",
-            '<a href="/"<h1>' + self.blog_title + "</h1></a>",
+            '<a href="/"><h1>' + self.blog_title + "</h1></a>",
             "<br />",
-            "<body><div class='row'<div class='span11 offset1'>",
+            "<body><div class='row'><div class='span11 offset1'>",
             "<br /><br />".join([post.getFormattedPost() for post in self.posts]),
             "</div></div><body>"
         ]
