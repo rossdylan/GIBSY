@@ -6,7 +6,7 @@ import PyRSS2Gen as rss2
 import utilities as util
 
 TEMPLATE_HEAD = ""
-TEMPLATE_HEAD += '<html>'
+TEMPLATE_HEAD += '<html><head></head>'
 TEMPLATE_HEAD += '<link rel="stylesheet" '
 TEMPLATE_HEAD += 'href='
 TEMPLATE_HEAD += '"http://twitter.github.com'
@@ -100,7 +100,7 @@ class Blog(object):
         self.posts_path = os.path.join(self.git_clone, "posts")
 
         self.pygments = util.run_command("pygmentize -S colorful -f html")
-        self.pygments += "\n pre {line-height: 10px: }"
+        self.pygments += "\n pre {line-height: 10px; }"
 
         post_listing = os.listdir(self.posts_path)
         post_files = [os.path.join(self.posts_path, f) for f in post_listing]
