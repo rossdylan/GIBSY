@@ -38,8 +38,8 @@ class geventWSGI(object):
     def __setitem__(self, key, value):
         self.callbacks[key] = value
 
-    def handle(self, env, start_reponse):
-        return self[env['PATH_INFO']]
+    def handle(self, env, start_response):
+        return self[env['PATH_INFO']](env, start_response)
 
     def start(self):
         WSGIServer((self.addr, self.port), self.handle).serve_forever()
