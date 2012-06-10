@@ -1,9 +1,11 @@
-import fapws._evwsgi as evwsgi
+from gevent import monkey
+monkey.patch_all()
+from gevent.pywsgi import WSGIServer
 import os
 import json
-from fapws import base
 from daemon import Daemon
 import utilities as util
+
 
 
 DEFAULT_CONFIG = {
@@ -18,20 +20,44 @@ DEFAULT_CONFIG = {
 
 
 
+class geventWSGI(object):
+    def __init__(self, port, addr):
+        self.port = port
+        self.addr = addr
+        self.callbacks = {}
+
+    def __getitem__(self, key):
+        try:
+            return self.callbacks[key]
+        except Exception:
+            def _404(env, sr):
+                sr('404 Not Found', [('Content-Type', 'text/html')])
+                return ['<h1> Not Found </h1>']
+            return _404
+
+    def __setitem__(self, key, value):
+        self.callbacks[key] = value
+
+    def handle(self, env, start_reponse):
+        return self[env['PATH_info']]
+
+    def start(self):
+        WSGIServer((self.addr, self.port), self.handle).serve_forever()
 
 class Server(Daemon):
 
     def __init__(self, config_path):
         self.config_path = config_path
         self.config = json.loads(open(self.config_path).read())
+        self.gevent_server = geventWSGI(self.config['host'], self.config['port'])
         Daemon.__init__(self, self.config['pid_path'])
 
     def loadWebPath(self):
         for post in self.blog.posts:
-            evwsgi.wsgi_cb(("/%s" % post.getWebPath(), post.getPostPage))
-        evwsgi.wsgi_cb(("/rss", self.blog.getRSSFeed))
-        evwsgi.wsgi_cb(("/css", self.blog.getPygments))
-        evwsgi.wsgi_cb(("", self.blog.getIndexPage))
+            self.gevent_server["/{0}".format(post.getWebPath())] = post.getPostPage
+        self.gevent_server["/rss"] = self.blog.getRSSFeed
+        self.gevent_server["/css"] = self.blog.getPygments
+        self.gevent_server["/"] = self.blog.getIndexPage
 
     def update(self):
         current_dir = os.getcwd()
@@ -43,10 +69,8 @@ class Server(Daemon):
         from blog import Blog
         self.update()
         self.blog = Blog(self.config)
-        evwsgi.start(self.config['host'], self.config['port'])
-        evwsgi.set_base_module(base)
         self.loadWebPath()
-        evwsgi.run()
+        self.gevent_server.start()
 
 def gibsy_main():
     import sys
