@@ -27,7 +27,7 @@ setup(
         "Programming Lnaguage :: Python :: 2"
     ],
     install_requires=[
-        'fapws3',
+        'gevent',
         'PyRSS2Gen',
         'pygments',
         'docutils>=0.9'
