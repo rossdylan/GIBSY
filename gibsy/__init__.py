@@ -21,8 +21,8 @@ DEFAULT_CONFIG = {
 
 
 class geventWSGI(object):
-    def __init__(self, port, addr):
-        self.port = port
+    def __init__(self, addr, port):
+        self.port = int(port)
         self.addr = addr
         self.callbacks = {}
 
