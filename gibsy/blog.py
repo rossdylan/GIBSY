@@ -81,7 +81,7 @@ class BlogPost(object):
     def getRSSItem(self,url):
         return rss2.RSSItem(
                 title=re.sub('<[^<]+?>', '', self.title),
-                link=url + "/" + self.getWebPath(),
+                link=self.getWebPath(),
                 description=' '.join([w for w in self.body.split(" ")[0:len(self.body) // 4]]),
                 guid=rss2.Guid(url + "/" + self.getWebPath()),
                 pubDate=datetime.datetime(*self.date[0:6]))

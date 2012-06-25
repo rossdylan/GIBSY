@@ -31,7 +31,7 @@ class Server(Daemon):
             evwsgi.wsgi_cb(("/%s" % post.getWebPath(), post.getPostPage))
         evwsgi.wsgi_cb(("/rss", self.blog.getRSSFeed))
         evwsgi.wsgi_cb(("/css", self.blog.getPygments))
-        evwsgi.wsgi_cb(("", self.blog.getIndexPage))
+        evwsgi.wsgi_cb(("/", self.blog.getIndexPage))
 
     def update(self):
         current_dir = os.getcwd()
